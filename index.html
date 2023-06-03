@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>D3.js Graph</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+  </head>
+  <body>
+    <svg width="800" height="600"></svg>
+    <script>
+      d3.json("graph.json").then(data => {
+        const nodes = data.nodes;
+        const links = data.links;
+
+        const svg = d3.select("svg");
+        const node = svg.append("g")
+          .selectAll("circle")
+          .data(nodes)
+          .enter()
+          .append("circle")
+          .attr("r", 10)
+          .attr("fill", "#1f77b4");
+
+        const link = svg.append("g")
+          .selectAll("line")
+          .data(links)
+          .enter()
+          .append("line")
+          .attr("stroke", "#999")
+          .attr("stroke-opacity", 0.6)
+          .attr("stroke-width", 2);
+
+        const simulation = d3.forceSimulation(nodes)
+          .force("link", d3.forceLink(links).id(d => d.id))
+          .force("charge", d3.forceManyBody().strength(-50))
+          .force("center", d3.forceCenter(400, 300))
+          .on("tick", () => {
+            link.attr("x1", d => d.source.x)
+              .attr("y1", d => d.source.y)
+              .attr("x2", d => d.target.x)
+              .attr("y2", d => d.target.y);
+
+            node.attr("cx", d => d.x)
+              .attr("cy", d => d.y);
+          });
+      });
+    </script>
+  </body>
+</html>
