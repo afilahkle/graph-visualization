@@ -21,10 +21,12 @@
     <svg id="graph" width="800" height="600" viewBox="-5 -5 810 610"></svg>
     <div id="tooltip"></div>
     <script>
+      // Fetch and parse data
       d3.json("graph.json").then(data => {
         const nodes = data.nodes;
         const links = data.links;
 
+        // Convert flat data into a hierarchy
         const hierarchyData = d3.stratify()
           .id(d => d.id)
           .parentId(d => {
@@ -32,16 +34,23 @@
             return sourceNode ? sourceNode.source : null;
           })(nodes);
 
+        // Create tree layout
         const treeLayout = d3.tree().size([700, 500]);
         const treeData = treeLayout(hierarchyData);
 
         const svg = d3.select("#graph");
         const tooltip = d3.select("#tooltip");
 
+        // Create a linear scale for node radius
+        const radiusScale = d3.scaleLinear()
+          .domain([0, 1])
+          .range([2, 10]);
+
+        // Create nodes
         const node = svg.selectAll("circle")
           .data(treeData.descendants())
           .join("circle")
-          .attr("r", 5)
+          .attr("r", d => radiusScale(d.data.prob)) // Set radius using scale
           .attr("cx", d => d.x)
           .attr("cy", d => d.y)
           .attr("fill", "#1f77b4")
@@ -59,6 +68,7 @@
             const fen = chess.fen();
             console.log(fen);
 
+            // Create the chessboard
             const chessboard = Chessboard('tooltip', {
               draggable: false,
               position: fen,
@@ -73,9 +83,11 @@
             const tooltipWidth = tooltip.node().offsetWidth;
             const tooltipHeight = tooltip.node().offsetHeight;
 
+            // Calculate position
             let tooltipX = event.pageX - tooltipWidth / 2;
             let tooltipY = event.pageY - tooltipHeight - 10;
 
+            // Prevent tooltip from going out of screen
             if (tooltipX < 0) tooltipX = 0;
             if (tooltipY < 0) tooltipY = event.pageY + 10; 
             if (tooltipX + tooltipWidth > window.innerWidth) tooltipX = window.innerWidth - tooltipWidth;
@@ -90,6 +102,7 @@
           })
           .call(drag());
 
+        // Create links
         const link = svg.selectAll("line")
           .data(treeData.links())
           .join("line")
@@ -101,6 +114,7 @@
           .attr("stroke-opacity", 0.6)
           .attr("stroke-width", 2);
 
+        // Drag functions
         function drag() {
           function dragstarted(event) {
             if (!event.active) simulation.alphaTarget(0.3).restart();
