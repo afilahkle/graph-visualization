@@ -26,6 +26,19 @@
         const nodes = data.nodes;
         const links = data.links;
 
+        // Create a new Chess instance to calculate FEN strings
+        const chess = new Chess();
+
+        // Calculate the FEN string for each node
+        nodes.forEach(node => {
+          const moves = node.pgn.replace(/\d+\./g, '').split(' ');
+          for (let move of moves) {
+            chess.move(move, { sloppy: true });
+          }
+          node.fen = chess.fen();
+          chess.reset();  // Reset the board for the next calculation
+        });
+
         // Convert flat data into a hierarchy
         const hierarchyData = d3.stratify()
           .id(d => d.id)
@@ -44,7 +57,7 @@
         // Create a linear scale for node radius
         const radiusScale = d3.scaleLinear()
           .domain([0, 1])
-          .range([2, 10]);
+          .range([2, 20]);
 
         // Create a group for links
         const linkGroup = svg.append('g').attr('class', 'links');
@@ -60,18 +73,7 @@
           .attr("cy", d => d.y)
           .attr("fill", "#1f77b4")
           .on("mouseover", (event, d) => {
-            const chess = new Chess();
-            const moves = d.data.pgn.replace(/\d+\./g, '').split(' ');
-            for (let move of moves) {
-              const result = chess.move(move, { sloppy: true });
-              if (!result) {
-                console.error(`Invalid move "${move}" in PGN: ${d.data.pgn}`);
-                return;
-              }
-            }
-
-            const fen = chess.fen();
-            console.log(fen);
+            const fen = d.data.fen;
 
             // Create the chessboard
             const chessboard = Chessboard('tooltip', {
