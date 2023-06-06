@@ -46,8 +46,13 @@
           .domain([0, 1])
           .range([2, 10]);
 
+        // Create a group for links
+        const linkGroup = svg.append('g').attr('class', 'links');
+        // Create a group for nodes
+        const nodeGroup = svg.append('g').attr('class', 'nodes');
+
         // Create nodes
-        const node = svg.selectAll("circle")
+        const node = nodeGroup.selectAll("circle")
           .data(treeData.descendants())
           .join("circle")
           .attr("r", d => radiusScale(d.data.prob)) // Set radius using scale
@@ -100,10 +105,9 @@
             tooltip.style("opacity", 0);
             tooltip.html("");
           })
-          .call(drag());
 
         // Create links
-        const link = svg.selectAll("line")
+        const link = linkGroup.selectAll("line")
           .data(treeData.links())
           .join("line")
           .attr("x1", d => d.source.x)
@@ -113,31 +117,6 @@
           .attr("stroke", "#999")
           .attr("stroke-opacity", 0.6)
           .attr("stroke-width", 2);
-
-        // Drag functions
-        function drag() {
-          function dragstarted(event) {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
-            event.subject.fx = event.subject.x;
-            event.subject.fy = event.subject.y;
-          }
-
-          function dragged(event) {
-            event.subject.fx = event.x;
-            event.subject.fy = event.y;
-          }
-
-          function dragended(event) {
-            if (!event.active) simulation.alphaTarget(0);
-            event.subject.fx = null;
-            event.subject.fy = null;
-          }
-
-          return d3.drag()
-            .on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended);
-        }
       });
     </script>
   </body>
